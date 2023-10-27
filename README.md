@@ -26,5 +26,38 @@ With an optimal strategy player2 the second player to act
 should lose about 1/18 a chip per hand played with player2
 winning that same amount since it is  a 0 sum game
 
+## HOW STRATEGIES ARE REPRESENTED
+Player1 and Player2 each have a unique strategy for each of the possible three hands.
+This is represented as an array for player1 it is:
+[check,bet,fold_when_bet_to_after_check, call_when_bet_to_after_check].
+For player one the array is structred as [check_check,bet_check,bet_fold,bet_call].
+For both players the first two and last two elements of the array should sum to 100.
+
+
+## HOW IT WORKS
+Go through each possible card for both the first and the second player.
+Determine the current value for each action with the current strategies for each player.
+Calculate the regret of chosing strategy A rather than strategy b. For example
+the regret of player one checking then calling a bet from player2 is calling - folding.
+But because each player plays a mixed strategy you must account for the percentage of how often they
+bet with certain hands. Which is why we do a cumulative regret for each hand. Because player 2 can have
+any of the two other cards when we have a card we must find the regret for both of these conditions
+to try and find the optimal strategy for say when we have a jack since they could have either a king or a queen.
+Once we have our regrets we update our new strategy to bee each regret / sum of regrets.
+Note that we do not include negative regrets we want to increase the percentage that we take actions we
+regreted not taking and we can't have a negative percentage so all negative regrets are 0'd.
+Once we have done this for x number of iterations tracking all our current strategies
+(represented as percentages through decimal points)
+we then sum all of these strategies and then didivide by the number of iterations and we do this
+for each unique strategy for each unqiue card
+
+## CURRENT PROBLEMS
+The way I'm implimenting the algorithm does not seem to be yeilding the optimal results.
+Play2 should win about 1/18 chips a hand and player1 should lose about the same but in
+my current implimentation playr2 seems to be losing at a margin of about 1/1000 per hand
+so the two players are close to equilibrium even though this game does not have a perfectly equal
+strategy for both players and as stated earlier player2 should have the advantage.
+
+
 ## Sources:
 https://www.ma.imperial.ac.uk/~dturaev/neller-lanctot.pdf
