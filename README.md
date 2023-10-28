@@ -52,16 +52,16 @@ we then sum all of these strategies and then didivide by the number of iteration
 for each unique strategy for each unqiue card
 
 ## CURRENT PROBLEMS
-The way I'm implimenting the algorithm does not seem to be yeilding the optimal results.
-Play2 should win about 1/18 chips a hand and player1 should lose about the same but in
-my current implimentation playr2 seems to be losing at a margin of about 1/1000 per hand
-so the two players are close to equilibrium even though this game does not have a perfectly equal
-strategy for both players and as stated earlier player2 should have the advantage.
+My current problem is that I do not check for "dominated strategies" That should never be played
+at equalibrium something like calling a Jack if bet to. I can also probably prune my searches by
+eliminating going through strats that have a 100% or 0% chance of being played.
 
-## FINAL THOUGHTS
-Not sure what i'm doing wrong added several files trying to fix the probelm by implimenting
-several different changes to the algorithm including adding randomness but nothing seems to be wroking
-maybe I'll come back to this later or research more but at the moment i'm uncertain how to progress and how to actually achieve an optimal solution
+## NEED TO ADD
+Check for dominated strategies that will never be played and that should never be played at equalibrium
+
+## EXTRAS:
+Included a solved version of rock paper siccors called rps.py to show an incredibly simplified version of this
+algorithm in practice.
 
 
 ## Sources:
