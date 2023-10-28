@@ -9,9 +9,20 @@ just try changing that for player1 first maybe change for player 2 as well i'm n
 
 I actually think that your ev for checking should be prct_check * (percent_check_back + percent_bet_I_Call + percent_bet_I_Fold)
 '''
+import random
 
 class Kuhn:
-    def __init__(self,epochs=1000,num_sims=1000):
+    def __init__(self,epochs=1000,num_sims=10000):
+        self.rand = [True for _ in range(100)]
+        for i in range(300):
+            self.rand.append(True)
+            self.rand.append(False)
+        for i in range(100):
+            self.rand.append(False)
+            self.rand.append(False)
+            self.rand.append(True)
+        for i in range(epochs - len(self.rand)):
+            self.rand.append(False)
         self.epochs = epochs
         self.num_posisble_actions = 4
         self.cards = [0,1,2]
@@ -61,10 +72,10 @@ class Kuhn:
     def train(self):
         regrets_fta = []
         regrets_sta = []
-        for _ in range(self.epochs):
+        for h in range(self.epochs):
             for card in self.cards:
-                regrets_fta.append(self.cfr_fta(card))
-                regrets_sta.append(self.cfr_sta(card))
+                regrets_fta.append(self.cfr_fta(card,self.rand[h]))
+                regrets_sta.append(self.cfr_sta(card,self.rand[h]))
             self.update(regrets_fta,self.fta_strat,self.strat_sum_fta)
             self.update(regrets_sta, self.sta_strat,self.strat_sum_sta)
             regrets_fta = []
@@ -100,7 +111,7 @@ class Kuhn:
             strat_sum[i][3] += current[i][3]
 
     #try this way may need to include my current betting strategies
-    def cfr_sta(self,card):
+    def cfr_sta(self,card,add_rand):
         regret_matching = [0 for i in range(4)]
         sta = self.sta_strat[card]
         for acard in self.cards:
@@ -124,11 +135,13 @@ class Kuhn:
                 regret_matching[1] += ev_betting - check_check
                 regret_matching[2] += bet_fold - bet_call
                 regret_matching[3] += bet_call - bet_fold
-
-        regret_matching = [max(0,i) for i in regret_matching]
+        if not add_rand:
+            regret_matching = [max(0,i) for i in regret_matching]
+        else:
+            regret_matching = [max(0,i * random.random()) for i in regret_matching]
         return regret_matching
 
-    def cfr_fta(self,card):
+    def cfr_fta(self,card,add_rand):
         fta = self.fta_strat[card]
         regret_matching = [0 for i in range(4)]
         for acard in self.cards:
@@ -152,7 +165,10 @@ class Kuhn:
                 regret_matching[1] += ev_bet - ev_bet
                 regret_matching[2] += bet_fold - bet_call
                 regret_matching[3] += bet_call - bet_fold
-        regret_matching = [max(0,i) for i in regret_matching]
+        if not add_rand:
+            regret_matching = [max(0,i) for i in regret_matching]
+        else:
+            regret_matching = [max(0,random.random()*i) for i in regret_matching]
 
         return regret_matching
 

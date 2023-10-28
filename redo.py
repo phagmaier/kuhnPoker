@@ -11,7 +11,7 @@ I actually think that your ev for checking should be prct_check * (percent_check
 '''
 
 class Kuhn:
-    def __init__(self,epochs=1000,num_sims=1000):
+    def __init__(self,epochs=10000,num_sims=1000):
         self.epochs = epochs
         self.num_posisble_actions = 4
         self.cards = [0,1,2]
@@ -106,24 +106,17 @@ class Kuhn:
         for acard in self.cards:
             if acard != card:
                 fta = self.fta_strat[acard]
+                cc = fta[0] * sta[0] if card > acard else -1 * fta[0] * sta[0]
+                cbf = fta[0] * sta[1] * fta[2]
+                cbc = fta[0] * fta[1] * fta[3] * 2 if card > acard else -2 * fta[0] * sta[1] * fta[3]
+                bc = fta[1] * sta[3] * 2 if card > acard else -2 * fta[1] * sta[3]
+                bf = fta[1] * sta[2] * -1
 
-                check_check = fta[0] * sta[0] if card > acard else fta[0] * sta[0] * -1
-
-                bet_call = 2 * fta[1] * sta[3] if card > acard else -2 * fta[1] * sta[3]
-
-                bet_fold = fta[1] * sta[2]
-
-                check_bet_call = 2 * fta[0] * sta[1] * fta[3] if card > acard else -2 * fta[0] * sta[1] * fta[3]
-
-                check_bet_fold = fta[0] * sta[1] * fta[2]
-
-                ev_betting = check_bet_call + check_bet_fold
-
-
-                regret_matching[0] += check_check - ev_betting
-                regret_matching[1] += ev_betting - check_check
-                regret_matching[2] += bet_fold - bet_call
-                regret_matching[3] += bet_call - bet_fold
+                bwct = cbf+cbc
+                regret_matching[0] += cc - bwct
+                regret_matching[1] += bwct - cc
+                regret_matching[2] += bf - bc
+                regret_matching[3] += bc - bf
 
         regret_matching = [max(0,i) for i in regret_matching]
         return regret_matching
@@ -135,23 +128,22 @@ class Kuhn:
             if acard != card:
                 sta = self.sta_strat[card]
 
-                check_check = sta[0] * fta[0] if card > acard else -1 * sta[0] * fta[0]
+                cc = fta[0] * sta[0] if card > acard else -1 * fta[0] * sta[0]
+                cbf = fta[0] * sta[1] * fta[2] * -1
+                cbc = fta[0] * sta[1] * fta[3] * 2 if card > acard else -2 * fta[0] * sta[1] * fta[3]
+                bf = fta[1] * sta[2]
+                bc = fta[1] * sta[3] * 2 if card > acard else -2 * fta[1] * sta[3]
+                ev_c = cc = cbf + cbc
+                ev_b = bf + bc
 
-                check_bet_fold = fta[0] * sta[1] * fta[2] * -1
+                regret_matching[0] += ev_c - ev_b
+                regret_matching[1] += ev_b - ev_c
+                regret_matching[2] += bf - bc
+                regret_matching[3] += bc - bf
 
-                check_bet_call = fta[0] * sta[1] * fta[3] * 2 if card > acard else -2 * fta[0] * sta[1] * fta[3]
 
-                bet_fold = fta[1] * sta[2]
 
-                bet_call = fta[1] * sta[3] * 2 if card > acard else -2 * sta[3] * fta[1]
 
-                ev_check = check_check + check_bet_call + check_bet_fold
-                ev_bet = bet_fold + bet_call
-
-                regret_matching[0] += ev_check - ev_bet
-                regret_matching[1] += ev_bet - ev_bet
-                regret_matching[2] += bet_fold - bet_call
-                regret_matching[3] += bet_call - bet_fold
         regret_matching = [max(0,i) for i in regret_matching]
 
         return regret_matching

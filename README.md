@@ -58,6 +58,11 @@ my current implimentation playr2 seems to be losing at a margin of about 1/1000 
 so the two players are close to equilibrium even though this game does not have a perfectly equal
 strategy for both players and as stated earlier player2 should have the advantage.
 
+## FINAL THOUGHTS
+Not sure what i'm doing wrong added several files trying to fix the probelm by implimenting
+several different changes to the algorithm including adding randomness but nothing seems to be wroking
+maybe I'll come back to this later or research more but at the moment i'm uncertain how to progress and how to actually achieve an optimal solution
+
 
 ## Sources:
 https://www.ma.imperial.ac.uk/~dturaev/neller-lanctot.pdf
