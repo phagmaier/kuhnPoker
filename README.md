@@ -1,5 +1,15 @@
 # KUHN POKER
 
+## UPDATE
+Took time off to explore other projects. After researching more carefuly I realized I was calculating regret incorrectly.
+Will remedy this and fix with Kuhn poker. Like in the first version the code is pretty terrible I just want to get the logic
+and solution down and after that I will try and make it better. Will keep version once corrected because I believe this is the
+simpleset form despite not being very 'elegant' or smart. Will have it finished this week if I didn't also mess this up.
+The problem was I was not calculating regret based on the expected results of each action vs the actual results of each action
+and defining a new strategy based on that. "actual results" as I define it is the expected value of checking back when check to.
+Which in the case of a jack is always -1. But with a new strategy the ev would become percent_player_1_check * percent_player_2_checks * -1.
+The regrets are then used to create new strategy for training. Total regrets are then used to create a new strategy based on the normalized regret
+meaning if I regret checking 1 and betting 2 the total is 3 so we check and a rate of 1/3 and bet at a rate of 2/3.
 ## SUMMARY:
 Using Counter Factual Regret Minimization and regret matching to try and generate the optimal strategy for kuhn poker whose rules are below.
 Currently not sure if the commented part of my cfr functions is the optimal strategy or if the current strategy is optimal should run sims to test.

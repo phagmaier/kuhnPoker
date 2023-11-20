@@ -158,7 +158,11 @@ class Kuhn:
 
 
 
-
+    #Think all you need to do is add something that when a percentgae is 0
+    #just make a very small value representing wins or losses insignificant
+    #but greater or less than zero by a hair just so you don't get that problem
+    #with having a zero and then having to select a uniform distribution
+    #either that or prune all impossibly bad decisions form the tree with an if statment
     def cfrm(self,card):
         #regrets for fta and sta
         myfta = self.fta[card]
@@ -205,5 +209,5 @@ class Kuhn:
             self.sta_regs[card] = [max(0,i) for i in self.sta_regs[card]]
 
 
-kuhn = Kuhn(100000)
+kuhn = Kuhn(1000)
 kuhn.train()
