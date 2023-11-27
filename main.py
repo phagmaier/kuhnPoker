@@ -24,16 +24,16 @@ COL 3 = CALL WHEN BET TO
 class Kuhn:
     def __init__(self,epochs):
         self.epochs = epochs
-        self.fta = [[.5 for _ in range(4)]for _ in range(3)]
-        self.sta = [[.5 for _ in range(4)]for _ in range(3)]
-        #self.fta = [[.5,.5,1,0],[.5,.5,.5,.5],[1,0,0,1]]
-        #self.sta = [[1,0,1,0],[.5,.5,.5,.5],[0,1,0,1]]
+        #self.fta = [[.5 for _ in range(4)]for _ in range(3)]
+        #self.sta = [[.5 for _ in range(4)]for _ in range(3)]
+        self.fta = [[.5,.5,1,0],[.5,.5,.5,.5],[1,0,0,1]]
+        self.sta = [[1,0,1,0],[.5,.5,.5,.5],[0,1,0,1]]
         self.fta_regrets = [[0 for _ in range(4)]for _ in range(3)]
         self.sta_regrets = [[0 for _ in range(4)]for _ in range(3)]
         self.cards = list(range(3))
         self.results = self.get_results()
         self.train()
-        #self.get_final_strat()
+        self.get_final_strat()
         self.print_strat()
 
     def print_strat(self):
@@ -98,30 +98,31 @@ class Kuhn:
             self.update(regs1,regs2)
 
     def update(self,fta,sta):
-        for i in range(len(fta)):
-            for x in range(0,4,2):
-                self.fta_regrets[i][x] += fta[i][x]
-                self.fta_regrets[i][x+1] += fta[i][x+1]
-                total1 = self.fta_regrets[i][x] + self.fta_regrets[i][x+1]
-
-                self.sta_regrets[i][x] += sta[i][x]
-                self.sta_regrets[i][x+1] += sta[i][x+1]
-                total2 = self.sta_regrets[i][x] + self.sta_regrets[i][x+1]
-
-                if not total1:
-                    self.fta[i][x] = .5
-                    self.fta[i][x+1] = .5
+        count = 0
+        for card1,card2 in zip(fta,sta):
+            for i in range(0,4,2):
+                total1 = card1[i] + card1[i+1]
+                total2 = card2[i] + card2[i+1]
+                if total1 == 0:
+                    self.fta[count][i] = .5
+                    self.fta[count][i+1] = .5
                 else:
-                    self.fta[i][x] = self.fta_regrets[i][x]/total1
-                    self.fta[i][x+1] = self.fta_regrets[i][x+1] / total1
+                #if total1 != 0:
+                    self.fta[count][i] = card1[i] / total1
+                    self.fta[count][i+1] = card1[i+1] / total1
+                    self.fta_regrets[count][i] += card1[i]
+                    self.fta_regrets[count][i+1] += card1[i+1]
 
-                if not total2:
-                    self.sta[i][x] = .5
-                    self.sta[i][x+1] = .5
+                if total2 == 0:
+                    self.sta[count][i] = .5
+                    self.sta[count][i+1] = .5
                 else:
-                    self.sta[i][x] = self.sta_regrets[i][x] / total2
-                    self.sta[i][x+1] = self.sta_regrets[i][x+1] / total2
-
+                #if total2 != 0:
+                    self.sta[count][i] = card2[i] / total2
+                    self.sta[count][i+1] = card2[i+1] / total2
+                    self.sta_regrets[count][i] += card2[i]
+                    self.sta_regrets[count][i+1] += card2[i+1]
+            count +=1
 
 
     def cfrm(self,card):
@@ -143,59 +144,59 @@ class Kuhn:
             ev_fta += fta[0] * sta2[1] * fta[2] * -1
             ev_fta += fta[0] * sta2[1] * fta[3] * 2 * payoff
             ev_fta += fta[1] * sta2[2]
-            ev_fta += fta[1] * sta2[3] * 2 * payoff
+            ev_fta += 2 * payoff * fta[1] * sta2[3]
 
             #calculating for always checking
-            m_fta[0] += sta2[0] * payoff #check check fta
-            m_fta[0] += sta2[1] * fta[2] * -1 #check bet fold fta
-            m_fta[0] += sta2[1] * fta[3] * 2 * payoff # check bet call fta
+            m_fta[0] += sta2[0] * payoff
+            m_fta[0] += sta2[1] * -1 * fta[2]
+            m_fta[0] += sta2[1] * fta[3] * 2 * payoff
 
             #calculate always betting
-            m_fta[1] += sta2[3] * 2 * payoff #bet call
-            m_fta[1] += sta2[2] * -1 #bet fold
+            m_fta[1] += sta2[3] * 2 * payoff
+            m_fta[1] += sta2[2] * -1
 
             #always fold when bet to
-            m_fta[2] += fta[0] * sta2[0] * payoff #check check
-            m_fta[2] += fta[0] * sta2[1] * -1 #check bet fold
-            m_fta[2] += fta[1] * sta2[2] #bet fold
-            m_fta[2] += fta[1] * sta2[3] * 2 * payoff #bet call
+            m_fta[2] += fta[0] * sta2[0] * payoff
+            m_fta[2] += fta[0] * sta2[1] * -1
+            m_fta[2] += fta[1] * sta2[2]
+            m_fta[2] += fta[1] * sta2[3] * 2 * payoff
 
             #always call when bet to
-            m_fta[3] += fta[0] * sta2[0] * payoff #check check
-            m_fta[3] += fta[0] * sta2[1] * 2 * payoff #check bet call
-            m_fta[3] += fta[1] * sta2[2] #bet fold
-            m_fta[3] += fta[1] * sta2[3] * 2 * payoff #bet call
+            m_fta[3] += fta[0] * sta2[0] * payoff
+            m_fta[3] += fta[0] * sta2[1] * 2 * payoff
+            m_fta[3] += fta[1] * sta2[2]
+            m_fta[3] += fta[1] * sta2[3] * 2 * payoff
 
 
             #calculate the total ev at current strat
-            ev_sta += fta2[0] * sta[0] * payoff #check check
-            ev_sta += fta2[0] * sta[1] * fta2[2] # check bet fold
-            ev_sta += fta2[0] * sta[1] * fta2[3] * 2 * payoff #check bet call
-            ev_sta += fta2[1] * sta[2] * -1 # bet fold
-            ev_sta += fta2[1] * sta[3] * payoff * 2 # bet call
+            ev_sta += fta2[0] * sta[0] * payoff
+            ev_sta += fta2[0] * sta[1] * fta2[2]
+            ev_sta += fta2[0] * sta[1] * fta2[3] * 2 * payoff
+            ev_sta += fta2[1] * sta[2] * -1
+            ev_sta += 2 * payoff * fta2[1] * sta[3]
 
             #always check back
-            m_sta[0] += fta2[0] * payoff #check check
-            m_sta[0] += fta2[1] * sta[2] * -1 # bet fold
-            m_sta[0] += fta2[1] * sta[3] * 2 * payoff # bet call
+            m_sta[0] += fta2[0] * payoff
+            m_sta[0] += fta2[1] * sta[2] * -1
+            m_sta[0] += fta2[1] * sta[3] * 2 * payoff
 
             #always bet when checked to
-            m_sta[1] += fta2[0] * fta2[2] # check bet fold
-            m_sta[1] += fta2[0] * fta2[3] * 2 * payoff # check bet call
-            m_sta[1] += fta2[1] * sta[3] * 2 * payoff #bet call
-            m_sta[1] += fta2[1] * sta[2] * -1 # bet fold
+            m_sta[1] += fta2[0] * fta2[2]
+            m_sta[1] += fta2[0] * fta2[3] * 2 * payoff
+            m_sta[1] += 2 * payoff * fta2[1] * sta[3]
+            m_sta[1] += fta2[1] * sta[2] * -1
 
             #always call when bet to
-            m_sta[3] += fta2[0] * sta[0] * payoff #check check
-            m_sta[3] += fta2[0] * sta[1] * fta2[2] #check bet fold
-            m_sta[3] += fta2[0] * sta[1] * fta2[3] * 2 * payoff #check bet call
-            m_sta[3] += fta2[1] * 2 * payoff # bet call
+            m_sta[3] += fta2[0] * sta[0] * payoff
+            m_sta[3] += fta2[0] * sta[1] * fta2[2]
+            m_sta[3] += fta2[0] * sta[1] * fta2[3] * 2 * payoff
+            m_sta[3] += fta2[1] * 2 * payoff
 
             #always fold when bet to
-            m_sta[2] += fta2[0] * sta[0] * payoff #check check
-            m_sta[2] += fta2[0] * sta[1] * fta2[2] #check bet fold
-            m_sta[2] += fta2[0] * sta[1] * fta2[3] * 2 * payoff #check bet call
-            m_sta[2] += fta2[1] * -1 #bet fold
+            m_sta[2] += fta2[0] * sta[0] * payoff
+            m_sta[2] += fta2[0] * sta[1] * fta2[2]
+            m_sta[2] += fta2[0] * sta[1] * fta2[3] * 2 * payoff
+            m_sta[2] += fta2[1] * -1
 
         return [max(0,i-ev_sta) for i in m_fta],[max(0,i-ev_sta) for i in m_sta]
 

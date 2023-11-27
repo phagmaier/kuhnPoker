@@ -44,7 +44,7 @@ Determine how much money Player1 and Player2 is winning/losing at their current 
 For each column in the matrix of strategies set 1 of the possible decision nodes to 100% meaning
 play that particular action 100% of the time. This as well as the expected value we recieve at our current
 strategy is how we calculate regret. We take the total ev of if we played one particular strategy 100% of the time
-- the expected value at our current strategy. This is done in order to see if we should play this strategy more frequently.
+subtracted the expected value at our current strategy. This is done in order to see if we should play this strategy more frequently.
 For example lets say at our current strategy against our opponents strategy we have an expected value of 1 chip a hand.
 Now to calculate the regret of say Checking. We essentially switch the percentage of the time we play bet to 0 and keep everything else
 the same including our opponents strategy. We then again calculate the expected value at this modified strategy which we will call ms for modified strategy.
@@ -62,8 +62,14 @@ also a strategy the strategy for calling a bet if i check and then am bet in to 
 of the game tree so only the intial check or fold will be normalized and the choice to call or fold when i check and am bet in to
 is its own probability that should be normalized. In summary any decision that can be made at a particular point should be normalized.
 
-## CURRENT PROBLEMS
-For some reason It's not completley optimal yet and I must have made a mistake in my logic.
+## UPDATE
+Strategies are now selected at each stages based on normalized total regret
+
+## FILES
+### main.py gives the accurate results and selects the next strategy based on the normalized total regret based on all iterations.
+### kuhn.py gives almost accurate results but selects next strategy based soley on the regrets from the previous iterations and the
+final strategy is the average across all training iterations.
+#### thesis_submission.pdf: a paper that breaks down counter factual regret minimization CFRM in a very simple easy to understand language
 
 ## Sources
 [Good clear PDF on CFRM](thesis_submission.pdf)
