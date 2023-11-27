@@ -1,4 +1,9 @@
 '''
+PRETTY BAD CODE AT THE MOMENT JUST TRYING TO GET THE LOFIC RIGHT FIRST
+THEN MAYBE I'LL CLEAN IT UP
+
+still doesn't converge to
+
 FTA MEANS FIRST TO ACT
 STA MEANS SECOND TO ACT
 STRATEGIES ARE STORED AS FOLLOWS:
@@ -16,7 +21,6 @@ COL 2 = FOLD WHEN BET TO
 COL 3 = CALL WHEN BET TO
 '''
 
-
 class Kuhn:
     def __init__(self,epochs):
         self.epochs = epochs
@@ -25,8 +29,6 @@ class Kuhn:
         self.fta_regrets = [[0 for _ in range(4)]for _ in range(3)]
         self.sta_regrets = [[0 for _ in range(4)]for _ in range(3)]
         self.cards = list(range(3))
-        self.final_fta = None
-        self.final_sta = None
         self.results = self.get_results()
         self.train()
         self.get_final_strat()
@@ -55,7 +57,6 @@ class Kuhn:
                 print(f"{p2_strat[x]} at a rate of: {strat*100:.2f}%")
                 print("-"*50)
 
-
     def get_results(self):
         results = {}
         for i in self.cards:
@@ -65,23 +66,26 @@ class Kuhn:
         return results
 
     def get_final_strat(self):
-        for count in range(len(self.fta)):
-            for i in range(0,4,2):
-                total1 = self.fta_regrets[count][i] + self.fta_regrets[count][i+1]
-                total2 = self.sta_regrets[count][i] + self.sta_regrets[count][i+1]
+        self.sta_regrets = [[strat/self.epochs for strat in card]for card in self.sta_regrets]
+        self.fta_regrets = [[strat/self.epochs for strat in card]for card in self.fta_regrets]
+        for i in range(len(self.sta_regrets)):
+            for x in range(0,4,2):
+                total1 = self.fta_regrets[i][x] + self.fta_regrets[i][x+1]
+                total2 = self.sta_regrets[i][x] + self.sta_regrets[i][x+1]
                 if total1 == 0:
-                    self.fta[count][i] = .5
-                    self.fta[count][i+1] = .5
+                    self.fta[i][x] = .5
+                    self.fta[i][x] = .5
                 else:
-                    self.fta[count][i] = self.fta[count][i]/total1
-                    self.fta[count][i+1] = self.fta[count][i+1]/total1
-
+                    self.fta[i][x] = self.fta_regrets[i][x]/total1
+                    self.fta[i][x+1] = self.fta_regrets[i][x+1]/total1
                 if total2 == 0:
-                    self.sta[count][i] = .5
-                    self.sta[count][i+1] = .5
+                    self.sta[i][x] = .5
+                    self.sta[i][x+1] = .5
                 else:
-                    self.sta[count][i] = self.sta[count][i]/total2
-                    self.sta[count][i+1] = self.sta[count][i+1]/total2
+                    self.sta[i][x] = self.sta_regrets[i][x]/total2
+                    self.sta[i][x+1] = self.sta_regrets[i][x+1]/total2
+
+
 
     def train(self):
         for _ in range(self.epochs):
@@ -193,4 +197,4 @@ class Kuhn:
         return [max(0,i-ev_sta) for i in m_fta],[max(0,i-ev_sta) for i in m_sta]
 
 if __name__ == '__main__':
-    kuhn = Kuhn(10000)
+    kuhn = Kuhn(1000000)

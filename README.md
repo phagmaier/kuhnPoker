@@ -1,21 +1,7 @@
 # KUHN POKER
 
-## UPDATE
-Took time off to explore other projects. After researching more carefuly I realized I was calculating regret incorrectly.
-Will remedy this and fix with Kuhn poker. Like in the first version the code is pretty terrible I just want to get the logic
-and solution down and after that I will try and make it better. Will keep version once corrected because I believe this is the
-simpleset form despite not being very 'elegant' or smart. Will have it finished this week if I didn't also mess this up.
-The problem was I was not calculating regret based on the expected results of each action vs the actual results of each action
-and defining a new strategy based on that. "actual results" as I define it is the expected value of checking back when check to.
-Which in the case of a jack is always -1. But with a new strategy the ev would become percent_player_1_check * percent_player_2_checks * -1.
-The regrets are then used to create new strategy for training. Total regrets are then used to create a new strategy based on the normalized regret
-meaning if I regret checking 1 and betting 2 the total is 3 so we check and a rate of 1/3 and bet at a rate of 2/3.
 ## SUMMARY:
-Using Counter Factual Regret Minimization and regret matching to try and generate the optimal strategy for kuhn poker whose rules are below.
-Currently not sure if the commented part of my cfr functions is the optimal strategy or if the current strategy is optimal should run sims to test.
-Also very possible I made a mistake and this is not optimal plus I believe there are an infinite number of optimal strategies for at least player 1
-and probably for player 2. Will add sims and then change accordingly.
-
+Using Counter Factual Regret Minimization and regret matching to try and generate the optimal strategy.
 ## RULES OF THE GAME:
 Only 2 players in a game.Only 3 cards total can be dealt
 meaning each player has a unique card. Can only be dealt
@@ -24,7 +10,10 @@ is the worst card. The player with the best hand at showdown
 (when no more actions can be taken) wins the pot (the money wagered).
 The First Player to act (Player1) can either bet or check to
 start the game. The Second player can either call/fold if bet to or
-bet/check if checked to.
+bet/check if checked to. A bet is when a player volentarily puts an additional
+chip into the pot and a check is when a player choses not to bet and lets the next player act.
+A check is only a valid option if you are the first player to act in a hand or if the player before you also checked.
+A fold is when a player gives up the hand meaning the other player wins the hand.
 If the first player checks and the second player bets player1
 can either call or fold.
 Each player posts 1 chip before the start of each hand before recieving
@@ -33,46 +22,48 @@ The bet size is limited to one chip meaning the
 maximum pot size is 4 chips so the maximum amount one can win/lose
 is 2.
 With an optimal strategy player2 the second player to act
-should lose about 1/18 a chip per hand played with player2
-winning that same amount since it is  a 0 sum game
-
+should win about 1/18 chips per hand and player 1 should lose at the same
+rate since this is a 0 sum game.
 ## HOW STRATEGIES ARE REPRESENTED
 Player1 and Player2 each have a unique strategy for each of the possible three hands.
-This is represented as an array for player1 it is:
+This is represented as an matrix.
+A row represents a strategy for a particular card.
+Row index 0 is the strategy for a jack index 1 the queen index 3 the king
+Each column represents a percentage that each strategy should be taken for player1
+the columns represent the following:
 [check,bet,fold_when_bet_to_after_check, call_when_bet_to_after_check].
-For player one the array is structred as [check_check,bet_check,bet_fold,bet_call].
-For both players the first two and last two elements of the array should sum to 100.
+For player2 the array is structred as:
+[check_check,bet_check,bet_fold,bet_call].
+For both players the first two and last two elements of the array should sum to 1
+since each column in a row is a decimal representing the probability it will take each action.
 
 
 ## HOW IT WORKS
 Go through each possible card for both the first and the second player.
-Determine the current value for each action with the current strategies for each player.
-Calculate the regret of chosing strategy A rather than strategy b. For example
-the regret of player one checking then calling a bet from player2 is calling - folding.
-But because each player plays a mixed strategy you must account for the percentage of how often they
-bet with certain hands. Which is why we do a cumulative regret for each hand. Because player 2 can have
-any of the two other cards when we have a card we must find the regret for both of these conditions
-to try and find the optimal strategy for say when we have a jack since they could have either a king or a queen.
-Once we have our regrets we update our new strategy to bee each regret / sum of regrets.
-Note that we do not include negative regrets we want to increase the percentage that we take actions we
-regreted not taking and we can't have a negative percentage so all negative regrets are 0'd.
-Once we have done this for x number of iterations tracking all our current strategies
-(represented as percentages through decimal points)
-we then sum all of these strategies and then didivide by the number of iterations and we do this
-for each unique strategy for each unqiue card
+Determine how much money Player1 and Player2 is winning/losing at their current strategies.
+For each column in the matrix of strategies set 1 of the possible decision nodes to 100% meaning
+play that particular action 100% of the time. This as well as the expected value we recieve at our current
+strategy is how we calculate regret. We take the total ev of if we played one particular strategy 100% of the time
+- the expected value at our current strategy. This is done in order to see if we should play this strategy more frequently.
+For example lets say at our current strategy against our opponents strategy we have an expected value of 1 chip a hand.
+Now to calculate the regret of say Checking. We essentially switch the percentage of the time we play bet to 0 and keep everything else
+the same including our opponents strategy. We then again calculate the expected value at this modified strategy which we will call ms for modified strategy.
+We then do ms - ev (our expected value at current strategy). This then becomes the regret for the specific action. Note that
+only positive regrets are taken into account and any negative regrets are set to 0.
+The next time we go through our training loop our strategy will be our normalized regrets so if I regreted betting -1 and checking .25.
+Then the for the next iteration i'll play betting at max(0,-1)/(max(0,-1) + max(0,.25))
+and i'll do the same equation for checking so my next strategy will be bet: 0 check: 1.
+The reason behind this is to not be exploited by our opponent.
+Our final strategy is then the average of our normalized regrets.
+Note also that if the regrets sum to 0 we then chose a uniform probability for our next strategy.
+Also it should be noted that only strategies on the same level of the decision tree should be normalized.
+For example for player one the first decision node is bet or check. While calling a bet if player 1 checks and player 2 bets is
+also a strategy the strategy for calling a bet if i check and then am bet in to or fold if bet in to is on a different level or branch
+of the game tree so only the intial check or fold will be normalized and the choice to call or fold when i check and am bet in to
+is its own probability that should be normalized. In summary any decision that can be made at a particular point should be normalized.
 
 ## CURRENT PROBLEMS
-My current problem is that I do not check for "dominated strategies" That should never be played
-at equalibrium something like calling a Jack if bet to. I can also probably prune my searches by
-eliminating going through strats that have a 100% or 0% chance of being played.
+For some reason It's not completley optimal yet and I must have made a mistake in my logic.
 
-## NEED TO ADD
-Check for dominated strategies that will never be played and that should never be played at equalibrium
-
-## EXTRAS:
-Included a solved version of rock paper siccors called rps.py to show an incredibly simplified version of this
-algorithm in practice.
-
-
-## Sources:
-https://www.ma.imperial.ac.uk/~dturaev/neller-lanctot.pdf
+## Sources
+[Good clear PDF on CFRM](thesis_submission.pdf)
