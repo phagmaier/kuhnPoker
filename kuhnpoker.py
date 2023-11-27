@@ -1,12 +1,46 @@
+'''
+PRETTY SURE WHAT I NEED TO DO TO FIX THE ALGORITHM IS KEEP THE EXACT SAME STRATEGY EXPECT
+FOR THE STRAT I'M CALCULATING REGRET FOR YOU JUST TURN THAT TO 100% TAKING THAT ACTION
+100% OF THE TIME SO YOU JUST DON'T EVEN CONSIDER BETTING JUST PLAY THE CURRENT
+STRAT FOR BOTH PLAYER BUT ONLY CHECK
+THEN YOU CALCULATE REGRET BY DOING MODIFIEF 100% STRAT - CURRENT STRAT
+'''
+
 class Kuhn:
     def __init__(self,epochs=1000):
         self.epochs = epochs
         self.cards = list(range(3))
-        self.current_fta = [[.5 for i in range(4)] for x in range(3)]
-        self.current_sta = [[.5 for i in range(4)] for x in range(3)]
+        self.fta = [[.5 for i in range(4)] for x in range(3)]
+        self.sta = [[.5 for i in range(4)] for x in range(3)]
         self.regrets_fta = [[0 for i in range(4)] for x in range(3)]
         self.regrets_sta = [[0 for i in range(4)] for x in range(3)]
         self.payoffs = self.get_payoffs()
+        self.train()
+        self.print_results()
+
+    def print_results(self):
+        card_dic = {0:"Jack",1:"Queen", 2:"King"}
+        fta_dic = {0:"Check", 1:"Bet", 2:"Fold when bet to", 3:"Call when bet to"}
+        sta_dic = {0:"Check back", 1:"Bet when checked to", 2: "Fold when bet to", 3: "Call when bet to"}
+        print("PLAYER 1 STRATEGY")
+        print("-"*50)
+        for i,card in enumerate(self.fta):
+            print(f"PLAYER 1 STRATEGY with a {card_dic[i]}")
+            print("-"*50)
+            for x,strat in enumerate(card):
+                print(f"{fta_dic[x]} at a rate of: {strat*100:.2f}%")
+                print("-"*50)
+
+
+        print("PLAYER 2 STRATEGY")
+        print("-"*50)
+        for i,card in enumerate(self.sta):
+            print(f"PLAYER 2 STRATEGY with a {card_dic[i]}")
+            print("-"*50)
+            for x,strat in enumerate(card):
+                print(f"{sta_dic[x]} at a rate of: {strat*100:.2f}%")
+                print('-'*50)
+
 
     def get_payoffs(self):
         temp = {}
@@ -16,66 +50,55 @@ class Kuhn:
                     temp[(i,x)] = 1 if i > x else -1
         return temp
 
-    def train(self,card):
+    def train(self):
         for _ in range(self.epochs):
             for card in self.cards:
-                self.cfrm(card)
+                regs_fta, regs_sta = self.cfrm(card)
+                self.add_regrets(regs_fta,regs_sta,card)
+            self.update()
 
+    #WILL HAVE TO REWRITE THIS
+    #because you have to average this shit
+    #because this is just supposed to give you the next strat to try
+    def update(self):
+        '''
+        fr
+        '''
+        for i in range(3):
+            for x in range(0,4,2):
+                total = self.regrets_fta[i][x] + self.regrets_fta[i][x+1]
+                total2 = self.regrets_sta[i][x] + self.regrets_sta[i][x+1]
+                if total == 0:
+                    self.fta[i][x] = .5
+                    self.fta[i][x+1] = .5
+                else:
+                    self.fta[i][x] = self.regrets_fta[i][x] / total
+                    self.fta[i][x+1] = self.regrets_fta[i][x+1] / total
+                if total2 == 0:
+                    self.sta[i][x] = .5
+                    self.sta[i][x+1] = .5
+                else:
+                    self.sta[i][x] = self.regrets_sta[i][x] / total2
+                    self.sta[i][x+1] = self.regrets_sta[i][x+1] / total2
+
+    def add_regrets(self,fta,sta,card):
+        for i in range(4):
+            self.regrets_fta[card][i] += fta[i]
+            self.regrets_sta[card][i] += sta[i]
+
+    '''
+    DON'T ACTUALLY THINK I NEED THE BAYES FUNCTION JUST DIVIDE BY 2
+    '''
     def cfrm(self,card):
-        fta_regrets = [0 for i in range(4)]
-        sta_regrets = [0 for i in range(4)]
-        deck = [i for i in self.cards if i!= card]
-        fta = self.current_fta[card]
-        sta = self.current_sta[card]
-        for card2 in deck:
-            temp_fta = self.current_fta[card2]
-            temp_sta = self.current_sta[card2]
-            payoff = self.payoffs[(card,card2)]
-            fta_cc = payoff
-            fta_cbf = -1
-            fta_cbc = 2 * payoff
-            fta_bc = 2 * payoff
-            fta_bf = 1
-
-            fta_ev_cc = fta[0] * temp_sta[0] * fta_cc
-            fta_ev_cbf = -1 * (fta[0] * temp_sta[1] * fta[2])
-            fta_ev_cbc = fta_cbc * (fta[0] * temp_sta[1] * fta[3])
-            fta_ev_bf = fta[1] * sta[2]
-            fta_ev_bc = fta_bc * fta[1] * sta[3]
-
-            sta_ev_cc = temp_fta[0] * sta[0] * -payoff
-            sta_ev_cbf = temp_fta[0] * sta[1] * temp_fta[2]
-            sta_ev_cbc = temp_fta[0] * sta[1] * temp_fta[3] * -fta_cbc
-            sta_ev_bf = -1 * (temp_fta[1] * sta[2])
-            sta_ev_bc = -fta_bc * (temp_fta[1] * sta[3])
-
-            fta_ev_checking = fta_ev_cc + fta_ev_cbf + fta_ev_cbc
-            checking = fta_cc + fta_cbf + fta_cbc
-
-            fta_ev_betting = fta_ev_bf + fta_ev_bc
-            betting = fta_bc + fta_bf
-
-            fta_regrets[0] += checking - fta_ev_checking
-            fta_regrets[1] += betting - fta_ev_betting
-            fta_regrets[2] += fta_bf - fta_ev_bf
-            fta_regrets[3] += fta_bc - fta_ev_bc
-
-            sta_regrets[0] += -fta_cc - sta_ev_cc
-            sta_regrets[1] += -1 * (fta_cbf + fta_cbc) - (sta_ev_cbf + sta_ev_cbc)
-            sta_regrets[2] += -1 - sta_ev_cbf
-            sta_regrets[3] += -sta_ev_cbc - sta_ev_cbc
-
-
-
-
-
-
-
-
-
-
+        pass
+'''
+    def bayes(self,cards,index,player,card):
+        prob_action = sum(player[i][index] * .5 for i in cards)
+        return (player[card][index] * .5) / prob_action
+'''
 
 
 if __name__ == "__main__":
-    epochs = 1000
+    epochs = 20000
     kuhn = Kuhn(epochs)
+

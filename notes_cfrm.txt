@@ -1,0 +1,36 @@
+THE COUNTER FACTUAL VALUE AT HISTORY H WITH A GIVEN STRATEGY S IS:
+
+let u[i] = summing player payoff u[i] for each terminal history multiplied
+by the probability of reaching that terminal history
+
+let n$(h,h') = the probability of reaching history h' from history h
+following the original strategy S
+
+let n%(h,h') = the probability of reaching history h' from history h follwoing
+strategy S WHERE ONLY CONSIDERING THE PROBABILITIES OF THE PLAYER OTHER THAN than the
+one you are calculating regtet for
+
+Z = set of all terminal states
+z = an elemnt of z that exists in z
+z { Z will mean exists in
+
+h0 = root node
+
+
+sum for all z: u[i] * (z)  * n$(h,z) * n%(h0,h)
+----------------
+        |
+        |
+
+#first part just
+means u[i] to some
+terminal payoff
+i think
+
+
+IN SUMMARY:
+----------
+To break this down: the payoff to the regret-updating player at that terminal history,
+multiplied by the probability of reaching that terminal history from the current history when
+playing according to strategy σ, multiplied by the probability of chance and your opponent
+allowing you to reach the current history from the beginning of the game.
